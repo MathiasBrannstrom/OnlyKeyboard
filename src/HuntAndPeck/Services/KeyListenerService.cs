@@ -1,128 +1,168 @@
-﻿using HuntAndPeck.NativeMethods;
-using System;
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
+using static HuntAndPeck.NativeMethods.User32;
 using System.Windows.Forms;
-using HuntAndPeck.Services.Interfaces;
+using Utilities;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace HuntAndPeck.Services
 {
-    internal class KeyListenerService : Form, IKeyListenerService, IDisposable
+
+    public enum Action
     {
-        public event EventHandler OnHotKeyActivated;
-        public event EventHandler OnTaskbarHotKeyActivated;
-        public event EventHandler OnDebugHotKeyActivated;
+        MouseMoveUp,
+        MouseMoveDown,
+        MouseMoveLeft,
+        MouseMoveRight,
+        MouseLeftButton,
+        MouseRightButton,
+        MouseMiddleButton,
+        MouseDoubleClick,
+        MouseScrollUp,
+        MouseScrollDown,
+        ShowUINavigationLabels,
+        ShowGridNavigationLabels
+    }
 
-        /// <summary>
-        /// Global counter for assigning ids to identiy the hot key registration
-        /// </summary>
-        private int _hotkeyIdCounter = 0;
+    public interface IMouseReplacementKeys
+    {
+        Keys GetKeyForAction(Action action);
+    }
 
-        private HotKey _hotKey;
-        private HotKey _taskbarHotKey;
-        private HotKey _debugHotKey;
 
-        /// <summary>
-        /// Re-registers the current hotkey, unregistering any previous key
-        /// </summary>
-        private void ReRegisterHotKey(HotKey hotKey)
+    public class DefaultKeyMappings : IMouseReplacementKeys
+    {
+        private readonly Dictionary<Action, Keys> _actionKeyMappings = new Dictionary<Action, Keys>
         {
-            // Already registered, have to unregister first
-            if (hotKey.RegistrationId > 0)
-            {
-                User32.UnregisterHotKey(Handle, hotKey.RegistrationId);
-            }
+            { Action.MouseMoveUp, Keys.F13 },
+            { Action.MouseMoveDown, Keys.F14 },
+            { Action.MouseMoveLeft, Keys.F15 },
+            { Action.MouseMoveRight, Keys.F16 },
+            { Action.MouseLeftButton, Keys.F17 },
+            { Action.MouseRightButton, Keys.F18 },
+            { Action.MouseMiddleButton, Keys.F19 },
+            { Action.MouseDoubleClick, Keys.F20 },
+            { Action.MouseScrollUp, Keys.F21 },
+            { Action.MouseScrollDown, Keys.F22 },
+            { Action.ShowUINavigationLabels, Keys.F23 },
+            { Action.ShowGridNavigationLabels, Keys.F24 }
+        };
+        private Dictionary<Keys, Action> _reverseMapping;
 
-            hotKey.RegistrationId = _hotkeyIdCounter++;
-            User32.RegisterHotKey(Handle, hotKey.RegistrationId, (uint)hotKey.Modifier, (uint)hotKey.Keys);
+        public DefaultKeyMappings()
+        {
+            _reverseMapping = _actionKeyMappings.ToDictionary(x => x.Value, x => x.Key);
         }
 
-        /// <summary>
-        /// Gets/sets the current hotkey
-        /// </summary>
-        /// <remarks>Changing this will cause the current hotkey to be unregistered</remarks>
-        public HotKey HotKey
+        public bool HasKeyMappingForKey(Keys key)
         {
-            get
+            return _reverseMapping.ContainsKey(key);
+        }
+
+        public Action GetActionFromKey(Keys key)
+        {
+            if (_reverseMapping.TryGetValue(key, out var action))
             {
-                return _hotKey;
+                return action;
             }
-            set
+
+            throw new ArgumentOutOfRangeException(nameof(key), key, null);
+        }
+
+        public Keys GetKeyForAction(Action action)
+        {
+            if (_actionKeyMappings.TryGetValue(action, out var key))
             {
-                _hotKey = value;
-                ReRegisterHotKey(_hotKey);
+                return key;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(action), action, null);
+        }
+    }
+
+    internal class KeysBeingHeld
+    {
+        private readonly KeyListenerService _listenerService;
+        private DefaultKeyMappings _keyMappings;
+
+        public KeysBeingHeld(KeyListenerService listenerService)
+        {
+            _listenerService = listenerService;
+            _listenerService.KeyChanged += HandleKeyChanged;
+
+            foreach(Action action in Enum.GetValues(typeof(Action)))
+            {
+                IsActionKeyHeld[action] = new ValueHolder<bool>(false);
+            }
+
+            _keyMappings = new DefaultKeyMappings();
+        }
+
+        private void HandleKeyChanged(Keys key, ButtonEvent buttonEvent)
+        {
+            if (!_keyMappings.HasKeyMappingForKey(key))
+                return;
+
+            IsActionKeyHeld[_keyMappings.GetActionFromKey(key)].Value = buttonEvent == ButtonEvent.Pressed;
+        }
+
+        public Dictionary<Action, ValueHolder<bool>> IsActionKeyHeld { get; } = new Dictionary<Action, ValueHolder<bool>>();
+    }
+
+    public enum ButtonEvent
+    {
+        Pressed,
+        Released
+    }
+
+    internal class KeyListenerService : IDisposable
+    {
+        private const int WH_KEYBOARD_LL = 13;
+        private const int WM_KEYDOWN = 0x0100;
+        private const int WM_KEYUP = 0x0101;
+        private IntPtr _hookId = IntPtr.Zero;
+        private LowLevelKeyboardProc _keyboardProc;
+
+        public delegate void KeyEvent(Keys key, ButtonEvent buttonEvent);
+        public event KeyEvent KeyChanged;
+
+
+        public KeyListenerService()
+        {
+            _keyboardProc = KeyboardEvent;
+            _hookId = StartListeningToKeyboard(_keyboardProc);
+        }
+
+        private IntPtr StartListeningToKeyboard(LowLevelKeyboardProc proc)
+        {
+            using (ProcessModule module = Process.GetCurrentProcess().MainModule)
+            {
+                return SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(module.ModuleName), 0);
             }
         }
 
-        /// <summary>
-        /// Gets/sets the current task bar hotkey
-        /// </summary>
-        /// <remarks>Changing this will cause the current hotkey to be unregistered</remarks>
-        public HotKey TaskbarHotKey
+        private IntPtr KeyboardEvent(int nCode, IntPtr wParam, IntPtr lParam)
         {
-            get
+            if (nCode >= 0)
             {
-                return _taskbarHotKey;
-            }
-            set
-            {
-                _taskbarHotKey = value;
-                ReRegisterHotKey(_taskbarHotKey);
-            }
-        }
-
-        public HotKey DebugHotKey
-        {
-            get
-            {
-                return _debugHotKey;
-            }
-            set
-            {
-                _debugHotKey = value;
-                ReRegisterHotKey(_debugHotKey);
-            }
-        }
-
-        protected override void WndProc(ref Message m)
-        {
-            if (m.Msg == Constants.WM_HOTKEY)
-            {
-                var e = new HotKeyEventArgs(m.LParam);
-
-                // Normal hotkey
-                if (_hotKey != null &&
-                    e.Key == _hotKey.Keys &&
-                    e.Modifiers == _hotKey.Modifier &&
-                    OnHotKeyActivated != null)
+                int vkCode = Marshal.ReadInt32(lParam);
+                if (wParam == (IntPtr)WM_KEYDOWN)
                 {
-                    OnHotKeyActivated(this, new EventArgs());
+                    KeyChanged?.Invoke((Keys)vkCode, ButtonEvent.Pressed);
                 }
-
-                // Task bar hotkey
-                if (_taskbarHotKey != null &&
-                    e.Key == _taskbarHotKey.Keys &&
-                    e.Modifiers == _taskbarHotKey.Modifier &&
-                    OnHotKeyActivated != null)
+                else if (wParam == (IntPtr)WM_KEYUP)
                 {
-                    OnTaskbarHotKeyActivated(this, new EventArgs());
-                }
-
-                // Debug hotkey
-                if (_debugHotKey != null &&
-                    e.Key == _debugHotKey.Keys &&
-                    e.Modifiers == _debugHotKey.Modifier &&
-                    OnDebugHotKeyActivated != null)
-                {
-                    OnDebugHotKeyActivated(this, new EventArgs());
+                    KeyChanged?.Invoke((Keys)vkCode, ButtonEvent.Released);
                 }
             }
-
-            base.WndProc(ref m);
+            return CallNextHookEx(_hookId, nCode, wParam, lParam);
         }
 
-        protected override void SetVisibleCore(bool value)
+        public void Dispose()
         {
-            // Ensures that the window will never be displayed
-            base.SetVisibleCore(false);
+            UnhookWindowsHookEx(_hookId);
         }
     }
 }

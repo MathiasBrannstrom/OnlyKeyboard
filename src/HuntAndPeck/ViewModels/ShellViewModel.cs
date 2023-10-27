@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Windows.Forms;
 using HuntAndPeck.NativeMethods;
+using HuntAndPeck.Services;
 using HuntAndPeck.Services.Interfaces;
 using Application = System.Windows.Application;
 
@@ -22,7 +22,7 @@ namespace HuntAndPeck.ViewModels
             IHintLabelService hintLabelService,
             IHintProviderService hintProviderService,
             IDebugHintProviderService debugHintProviderService,
-            IKeyListenerService keyListener)
+            KeyListenerService keyListener)
         {
             _showOverlay = showOverlay;
             _showDebugOverlay = showDebugOverlay;
@@ -32,29 +32,29 @@ namespace HuntAndPeck.ViewModels
             _hintProviderService = hintProviderService;
             _debugHintProviderService = debugHintProviderService;
 
-            keyListener1.HotKey = new HotKey
-            {
-                Keys = Keys.OemSemicolon,
-                Modifier = KeyModifier.Alt
-            };
+//            keyListener1.HotKey = new HotKey
+//            {
+//                Keys = Keys.OemSemicolon,
+//                Modifier = KeyModifier.Alt
+//            };
 
-            keyListener1.TaskbarHotKey = new HotKey
-            {
-                Keys = Keys.OemSemicolon,
-                Modifier = KeyModifier.Control
-            };
+//            keyListener1.TaskbarHotKey = new HotKey
+//            {
+//                Keys = Keys.OemSemicolon,
+//                Modifier = KeyModifier.Control
+//            };
 
-#if DEBUG
-            keyListener1.DebugHotKey = new HotKey
-            {
-                Keys = Keys.OemSemicolon,
-                Modifier = KeyModifier.Alt | KeyModifier.Shift
-            };
-#endif
+//#if DEBUG
+//            keyListener1.DebugHotKey = new HotKey
+//            {
+//                Keys = Keys.OemSemicolon,
+//                Modifier = KeyModifier.Alt | KeyModifier.Shift
+//            };
+//#endif
 
-            keyListener1.OnHotKeyActivated += _keyListener_OnHotKeyActivated;
-            keyListener1.OnTaskbarHotKeyActivated += _keyListener_OnTaskbarHotKeyActivated;
-            keyListener1.OnDebugHotKeyActivated += _keyListener_OnDebugHotKeyActivated;
+            //keyListener1.OnHotKeyActivated += _keyListener_OnHotKeyActivated;
+            //keyListener1.OnTaskbarHotKeyActivated += _keyListener_OnTaskbarHotKeyActivated;
+            //keyListener1.OnDebugHotKeyActivated += _keyListener_OnDebugHotKeyActivated;
 
             ShowOptionsCommand = new DelegateCommand(ShowOptions);
             ExitCommand = new DelegateCommand(Exit);

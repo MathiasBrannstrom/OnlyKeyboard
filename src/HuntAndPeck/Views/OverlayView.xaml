@@ -13,7 +13,6 @@
     PreviewKeyDown="OverlayView_OnPreviewKeyDown">
     <local:ForegroundWindow.Resources>
         <Style x:Key="HintStyle" TargetType="TextBlock">
-            <Setter Property="Background" Value="Yellow" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Active}" Value="false">
                     <Setter Property="Background" Value="LightYellow" />
@@ -43,14 +42,21 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Grid>
-                        <!--<Rectangle Width="{Binding Hint.BoundingRectangle.Width}" Height="{Binding Hint.BoundingRectangle.Height}" Stroke="Red" StrokeDashArray="1 2">
-                            <Rectangle.Fill>
-                                <SolidColorBrush Color="Yellow" Opacity="0.05" />
-                            </Rectangle.Fill>
-                        </Rectangle>-->
                         <Viewbox StretchDirection="DownOnly" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="1 1 0 0" Width="{Binding Hint.BoundingRectangle.Width}" Height="{Binding Hint.BoundingRectangle.Height}">
-                            <TextBlock Text="{Binding Label}" FontFamily="Helvetica, Arial" FontWeight="Bold" FontSize="{Binding FontSizeReadValue}" Style="{StaticResource HintStyle}">
-                            </TextBlock>
+                            <Border BorderBrush="DarkGoldenrod">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <LinearGradientBrush.GradientStops>
+                                            <GradientStop Offset="0" Color="LightYellow" />
+                                            <GradientStop Offset="1" Color="DarkOrange" />
+                                        </LinearGradientBrush.GradientStops>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="Black" Direction="270" ShadowDepth="5" BlurRadius="5" Opacity="0.5"/>
+                                </Border.Effect>
+                                    <TextBlock Text="{Binding Label}" FontFamily="Helvetica, Arial" FontWeight="Bold" FontSize="{Binding FontSizeReadValue}" Style="{StaticResource HintStyle}"/>
+                                </Border>
                         </Viewbox>
                     </Grid>
                 </DataTemplate>

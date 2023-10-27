@@ -23,7 +23,7 @@ namespace HuntAndPeck.Services
                 return hintStrings;
             }
 
-            var hintCharacters = new[] { 'S', 'A', 'D', 'F', 'J', 'K', 'L', 'E', 'W', 'C', 'M', 'P', 'G', 'H' };
+            var hintCharacters = new[] { 'S', 'A', 'R', 'G', 'H', 'N', 'E', 'I', 'O', 'V', 'M', 'C', 'L', 'D' };
             var digitsNeeded = (int)Math.Ceiling(Math.Log(hintCount) / Math.Log(hintCharacters.Length));
 
             var wholeHintCount = (int)Math.Pow(hintCharacters.Length, digitsNeeded);

@@ -16,6 +16,7 @@ namespace HuntAndPeck
         private readonly UiAutomationHintProviderService _hintProviderService = new UiAutomationHintProviderService();
         private readonly HintLabelService _hintLabelService = new HintLabelService();
         private KeyListenerService _keyListenerService;
+        private KeysBeingHeld _keysBeingHeld;
 
         private void ShowOverlay(OverlayViewModel vm)
         {
@@ -79,6 +80,8 @@ namespace HuntAndPeck
 
                 // Create this as late as possible as it has a window
                 _keyListenerService = new KeyListenerService();
+                _keysBeingHeld = new KeysBeingHeld(_keyListenerService);
+                _keysBeingHeld.IsActionKeyHeld[Action.MouseMoveUp].ValueChanged += HandleMouseMoveUpHeldChanged;
 
                 var shellViewModel = new ShellViewModel(
                     ShowOverlay,
@@ -96,6 +99,11 @@ namespace HuntAndPeck
                 shellView.Show();
             }
             base.OnStartup(e);
+        }
+
+        private void HandleMouseMoveUpHeldChanged()
+        {
+            System.Console.WriteLine("Mouse move up changed!");
         }
     }
 }
