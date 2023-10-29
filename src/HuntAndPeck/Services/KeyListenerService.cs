@@ -23,47 +23,59 @@ namespace HuntAndPeck.Services
         MouseScrollUp,
         MouseScrollDown,
         ShowUINavigationLabels,
-        ShowGridNavigationLabels
+        ShowGridNavigationLabels,
+        MouseSpeedUp,
+        MouseSpeedDown,
     }
 
-    public interface IMouseReplacementKeys
-    {
-        Keys GetKeyForAction(Action action);
-    }
+    //public enum Modifier
+    //{
+        
+    //}
 
 
-    public class DefaultKeyMappings : IMouseReplacementKeys
+
+    public class DefaultKeyMappings
     {
-        private readonly Dictionary<Action, Keys> _actionKeyMappings = new Dictionary<Action, Keys>
+        private readonly Dictionary<Keys, Action> _keyActionMappings = new Dictionary<Keys, Action>
         {
-            { Action.MouseMoveUp, Keys.F13 },
-            { Action.MouseMoveDown, Keys.F14 },
-            { Action.MouseMoveLeft, Keys.F15 },
-            { Action.MouseMoveRight, Keys.F16 },
-            { Action.MouseLeftButton, Keys.F17 },
-            { Action.MouseRightButton, Keys.F18 },
-            { Action.MouseMiddleButton, Keys.F19 },
-            { Action.MouseDoubleClick, Keys.F20 },
-            { Action.MouseScrollUp, Keys.F21 },
-            { Action.MouseScrollDown, Keys.F22 },
-            { Action.ShowUINavigationLabels, Keys.F23 },
-            { Action.ShowGridNavigationLabels, Keys.F24 }
+            { Keys.F13, Action.MouseMoveUp },
+            { Keys.F14, Action.MouseMoveLeft },
+            { Keys.F15, Action.MouseMoveDown },
+            { Keys.F16, Action.MouseMoveRight },
+            { Keys.F17, Action.MouseLeftButton },
+            { Keys.F18, Action.MouseRightButton },
+            { Keys.F19, Action.MouseMiddleButton },
+            { Keys.F20, Action.MouseDoubleClick },
+            { Keys.F21, Action.MouseScrollUp },
+            { Keys.F22, Action.MouseScrollDown },
+            { Keys.F23, Action.ShowUINavigationLabels },
+            { Keys.F24, Action.ShowGridNavigationLabels },
+            { Keys.LShiftKey, Action.MouseSpeedUp },
+            { Keys.RShiftKey, Action.MouseSpeedUp },
+            { Keys.LControlKey, Action.MouseSpeedDown },
+            { Keys.RControlKey, Action.MouseSpeedDown }
         };
-        private Dictionary<Keys, Action> _reverseMapping;
+
+
+        //private readonly Dictionary<Modifier, Keys> _modifierKeyMappings = new Dictionary<Modifier, Keys>
+        //{
+        //    { Modifier.MouseSpeedUp, Keys.Shift },
+        //    { Modifier.MouseSpeedDown, Keys.Control },
+        //};
 
         public DefaultKeyMappings()
         {
-            _reverseMapping = _actionKeyMappings.ToDictionary(x => x.Value, x => x.Key);
         }
 
         public bool HasKeyMappingForKey(Keys key)
         {
-            return _reverseMapping.ContainsKey(key);
+            return _keyActionMappings.ContainsKey(key);
         }
 
         public Action GetActionFromKey(Keys key)
         {
-            if (_reverseMapping.TryGetValue(key, out var action))
+            if (_keyActionMappings.TryGetValue(key, out var action))
             {
                 return action;
             }
@@ -71,15 +83,15 @@ namespace HuntAndPeck.Services
             throw new ArgumentOutOfRangeException(nameof(key), key, null);
         }
 
-        public Keys GetKeyForAction(Action action)
-        {
-            if (_actionKeyMappings.TryGetValue(action, out var key))
-            {
-                return key;
-            }
+        //public Keys GetKeyForModifier(Modifier modifier)
+        //{
+        //    if (_modifierKeyMappings.TryGetValue(modifier, out var key))
+        //    {
+        //        return key;
+        //    }
 
-            throw new ArgumentOutOfRangeException(nameof(action), action, null);
-        }
+        //    throw new ArgumentOutOfRangeException(nameof(modifier), modifier, null);
+        //}
     }
 
     internal class KeysBeingHeld

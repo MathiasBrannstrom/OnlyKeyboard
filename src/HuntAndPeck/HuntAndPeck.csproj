@@ -95,12 +95,13 @@
     <Compile Include="Models\UiAutomationInvokeHint.cs" />
     <Compile Include="Models\UiAutomationSelectHint.cs" />
     <Compile Include="Models\UiAutomationToggleHint.cs" />
+    <Compile Include="Services\ActionHandlerService.cs" />
     <Compile Include="Services\HintLabelService.cs" />
     <Compile Include="Services\Interfaces\IDebugHintProviderService.cs" />
     <Compile Include="Services\Interfaces\IHintLabelService.cs" />
     <Compile Include="Services\Interfaces\IHintProviderService.cs" />
     <Compile Include="Services\Interfaces\IKeyListenerService.cs" />
-    <Compile Include="Services\KeyListenerService.cs"/>
+    <Compile Include="Services\KeyListenerService.cs" />
     <Compile Include="Services\UiAutomationPatternIds.cs" />
     <Compile Include="Services\UiAutomationHintProviderService.cs" />
     <Compile Include="SingleLaunchMutex.cs" />

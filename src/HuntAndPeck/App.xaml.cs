@@ -17,6 +17,7 @@ namespace HuntAndPeck
         private readonly HintLabelService _hintLabelService = new HintLabelService();
         private KeyListenerService _keyListenerService;
         private KeysBeingHeld _keysBeingHeld;
+        private ActionHandlerService _actionHandlerService;
 
         private void ShowOverlay(OverlayViewModel vm)
         {
@@ -82,6 +83,8 @@ namespace HuntAndPeck
                 _keyListenerService = new KeyListenerService();
                 _keysBeingHeld = new KeysBeingHeld(_keyListenerService);
                 _keysBeingHeld.IsActionKeyHeld[Action.MouseMoveUp].ValueChanged += HandleMouseMoveUpHeldChanged;
+                _actionHandlerService = new ActionHandlerService(_keysBeingHeld);
+
 
                 var shellViewModel = new ShellViewModel(
                     ShowOverlay,
