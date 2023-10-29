@@ -71,5 +71,8 @@ namespace HuntAndPeck.NativeMethods
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
 
+        // Import the SendInput function from User32.dll
+        [DllImport("user32.dll")]
+        public static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
     }
 }

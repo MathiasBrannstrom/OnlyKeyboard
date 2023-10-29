@@ -50,8 +50,10 @@
     <Compile Include="Constants.cs" />
     <Compile Include="EventHandlerExtensions.cs" />
     <Compile Include="HotKeyEventArgs.cs" />
+    <Compile Include="INPUT.cs" />
     <Compile Include="Kernel32.cs" />
     <Compile Include="KeyModifier.cs" />
+    <Compile Include="MOUSEINPUT.cs" />
     <Compile Include="POINT.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RECT.cs" />
